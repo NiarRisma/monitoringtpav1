@@ -1,17 +1,11 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "monitoring_tpa";
+include 'koneksi.php';
 
 // Ambil data dari parameter GET (sesuai dengan yang dikirim dari Arduino)
-$metana = $_GET['metana'];
-$co2 = $_GET['co2'];
-$suhu = $_GET['suhu'];
-$kelembapan = $_GET['kelembapan'];
-
-// Koneksi ke database
-$conn = new mysqli($host, $user, $pass, $db);
+$suhu = $_GET['field1'] ?? 0;
+$kelembapan = $_GET['field2'] ?? 0;
+$metana = $_GET['field3'] ?? 0;
+$co2 = $_GET['field4'] ?? 0;
 
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);

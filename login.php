@@ -3,7 +3,7 @@ session_start();
 $pesan = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  $conn = new mysqli("localhost", "root", "", "monitoring_tpa");
+  include 'koneksi.php';
   $user = $_POST['username'];
   $pass = hash('sha256', $_POST['password']);
 

@@ -1,6 +1,6 @@
 <?php
 $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 10;
-$conn = new mysqli("localhost", "root", "", "monitoring_tpa");
+include 'koneksi.php';
 $data = $conn->query("SELECT * FROM data_sensor ORDER BY waktu DESC LIMIT $limit");
 
 while($row = $data->fetch_assoc()) {

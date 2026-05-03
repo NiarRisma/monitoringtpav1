@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/fpdf/fpdf.php';
 
-$conn = new mysqli("localhost", "root", "", "monitoring_tpa");
+include 'koneksi.php';
 $mode = $_GET['mode'] ?? 'harian';
 
 // Tentukan query dan judul berdasarkan mode

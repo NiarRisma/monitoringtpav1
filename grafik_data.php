@@ -1,5 +1,6 @@
 <?php
-$koneksi = new mysqli("localhost", "root", "", "monitoring_tpa");
+include 'koneksi.php';
+$koneksi = $conn;
 $data = $koneksi->query("SELECT * FROM data_sensor ORDER BY waktu DESC LIMIT 10");
 
 $response = [];
