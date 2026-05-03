@@ -4,7 +4,7 @@ $user = "root";
 $pass = "";
 $db   = "monitoring_tpa";
 
-$conn = new mysqli($host, $user, $pass, $db);
+include 'koneksi.php';
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
