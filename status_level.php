@@ -35,7 +35,71 @@ function get_status($type, $value) {
     }
 }
 
-function render_indicator($label, $value, $type) {
+function render_indicator($label, $value, $type) 
+function get_global_notification($data) {
+
+    $sensor = [
+        'metana' => [
+            'label' => 'CH4',
+            'value' => $data['metana']
+        ],
+        'co2' => [
+            'label' => 'CO2',
+            'value' => $data['co2']
+        ],
+        'suhu' => [
+            'label' => 'Suhu',
+            'value' => $data['suhu']
+        ],
+        'kelembapan' => [
+            'label' => 'Kelembapan',
+            'value' => $data['kelembapan']
+        ]
+    ];
+
+    // PRIORITAS BAHAYA
+    foreach ($sensor as $type => $s) {
+
+        $status = get_status($type, $s['value']);
+
+        if ($status == 'danger') {
+
+            return [
+                'class' => 'danger',
+                'status' => 'BAHAYA',
+                'message' =>
+                    $s['label'] .
+                    ' mencapai ' .
+                    $s['value']
+            ];
+        }
+    }
+
+    // PRIORITAS WARNING
+    foreach ($sensor as $type => $s) {
+
+        $status = get_status($type, $s['value']);
+
+        if ($status == 'warning') {
+
+            return [
+                'class' => 'warning',
+                'status' => 'WASPADA',
+                'message' =>
+                    $s['label'] .
+                    ' berada pada level waspada'
+            ];
+        }
+    }
+
+    // NORMAL
+    return [
+        'class' => 'success',
+        'status' => 'AMAN',
+        'message' => 'Kondisi udara masih normal'
+    ];
+}
+{
     $status = get_status($type, $value);
     return "
         <div class='d-flex align-items-center mx-3'>
@@ -46,4 +110,6 @@ function render_indicator($label, $value, $type) {
         </div>
     ";
 }
+$dataTerbaru = get_latest_data();
+$notifikasi = get_global_notification($dataTerbaru);
 ?>

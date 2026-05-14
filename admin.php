@@ -10,6 +10,17 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] != 'admin') {
 <?php include 'header.php'; ?>
 
 <h2 class="mb-4">Dashboard Admin</h2>
+<div class="alert alert-<?= $notifikasi['class']; ?> text-center">
+
+    <h4>
+        Status : <?= $notifikasi['status']; ?>
+    </h4>
+
+    <p class="mb-0">
+        <?= $notifikasi['message']; ?>
+    </p>
+
+</div>
 
 <!-- =========================
      EXPORT PDF
