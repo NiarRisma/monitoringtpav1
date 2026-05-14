@@ -1,8 +1,4 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "monitoring_tpa";
 
 include 'koneksi.php';
 if ($conn->connect_error) {

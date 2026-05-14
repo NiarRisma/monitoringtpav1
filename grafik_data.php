@@ -1,9 +1,22 @@
 <?php
 include 'koneksi.php';
+
 $koneksi = $conn;
-$data = $koneksi->query("SELECT * FROM data_sensor ORDER BY waktu DESC LIMIT 10");
+
+$data = $koneksi->query("
+SELECT 
+DATE_ADD(waktu, INTERVAL 7 HOUR) as waktu,
+suhu,
+kelembapan,
+metana,
+co2
+FROM data_sensor
+ORDER BY waktu DESC
+LIMIT 10
+");
 
 $response = [];
+
 while($row = $data->fetch_assoc()) {
   $response[] = [
     'waktu' => $row['waktu'],
@@ -14,5 +27,5 @@ while($row = $data->fetch_assoc()) {
   ];
 }
 
-echo json_encode(array_reverse($response)); // agar urutan dari lama ke baru
+echo json_encode(array_reverse($response));
 ?>

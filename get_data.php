@@ -1,7 +1,19 @@
 <?php
 $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 10;
+
 include 'koneksi.php';
-$data = $conn->query("SELECT * FROM data_sensor ORDER BY waktu DESC LIMIT $limit");
+
+$data = $conn->query("
+SELECT 
+DATE_ADD(waktu, INTERVAL 7 HOUR) as waktu,
+suhu,
+kelembapan,
+metana,
+co2
+FROM data_sensor
+ORDER BY waktu DESC
+LIMIT $limit
+");
 
 while($row = $data->fetch_assoc()) {
   echo "<tr>
