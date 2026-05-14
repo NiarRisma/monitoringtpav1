@@ -5,14 +5,27 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] != 'admin') {
   header("Location: login.php");
   exit;
 }
+
+// =========================
+// INCLUDE STATUS LEVEL
+// =========================
+include 'status_level.php';
+
+$dataTerbaru = get_latest_data();
+$notifikasi = get_global_notification($dataTerbaru);
+
 ?>
 
 <?php include 'header.php'; ?>
 
 <h2 class="mb-4">Dashboard Admin</h2>
-<div class="alert alert-<?= $notifikasi['class']; ?> text-center">
 
-    <h4>
+<!-- =========================
+     NOTIFIKASI STATUS
+========================= -->
+<div class="alert alert-<?= $notifikasi['class']; ?> text-center shadow-sm">
+
+    <h4 class="mb-2">
         Status : <?= $notifikasi['status']; ?>
     </h4>
 
