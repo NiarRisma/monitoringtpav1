@@ -1,186 +1,214 @@
 <?php
 
-include 'koneksi.php';
-
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
+include_once 'koneksi.php';
 
 // ======================================================
 // AMBIL DATA TERBARU
 // ======================================================
-function get_latest_data() {
+if (!function_exists('get_latest_data')) {
 
-    global $conn;
+    function get_latest_data() {
 
-    $query = "
-        SELECT suhu, kelembapan, metana, co2
-        FROM data_sensor
-        ORDER BY id DESC
-        LIMIT 1
-    ";
+        global $conn;
 
-    $result = $conn->query($query);
+        $query = "
+            SELECT suhu, kelembapan, metana, co2
+            FROM data_sensor
+            ORDER BY id DESC
+            LIMIT 1
+        ";
 
-    return $result->fetch_assoc();
-}
+        $result = $conn->query($query);
 
-// ======================================================
-// STATUS MASING-MASING SENSOR
-// ======================================================
-function get_status($type, $value) {
+        if ($result && $result->num_rows > 0) {
 
-    switch ($type) {
+            return $result->fetch_assoc();
 
-        case 'suhu':
+        } else {
 
-            if ($value < 28) {
-                return 'success';
-            } elseif ($value >= 29 && $value <= 38) {
-                return 'warning';
-            } else {
-                return 'danger';
-            }
-
-        case 'kelembapan':
-
-            if ($value < 50) {
-                return 'success';
-            } elseif ($value >= 51 && $value <= 80) {
-                return 'warning';
-            } else {
-                return 'danger';
-            }
-
-        case 'metana':
-
-            if ($value < 1000) {
-                return 'success';
-            } elseif ($value >= 1000 && $value <= 1500) {
-                return 'warning';
-            } else {
-                return 'danger';
-            }
-
-        case 'co2':
-
-            if ($value < 1000) {
-                return 'success';
-            } elseif ($value >= 1000 && $value <= 1500) {
-                return 'warning';
-            } else {
-                return 'danger';
-            }
-
-        default:
-            return 'secondary';
+            return [
+                'suhu' => 0,
+                'kelembapan' => 0,
+                'metana' => 0,
+                'co2' => 0
+            ];
+        }
     }
 }
 
 // ======================================================
-// RENDER INDIKATOR WARNA
+// STATUS LEVEL
 // ======================================================
-function render_indicator($label, $value, $type) {
+if (!function_exists('get_status')) {
 
-    $status = get_status($type, $value);
+    function get_status($type, $value) {
 
-    return "
-        <div class='d-flex align-items-center mx-3'>
+        switch ($type) {
 
-            <div
-                class='spinner-grow text-$status'
-                role='status'
-                style='width:0.9rem; height:0.9rem; margin-right:6px;'>
+            case 'suhu':
 
-                <span class='visually-hidden'>$label</span>
+                if ($value < 28) {
+                    return 'success';
+                } elseif ($value >= 29 && $value <= 38) {
+                    return 'warning';
+                } else {
+                    return 'danger';
+                }
 
+            case 'kelembapan':
+
+                if ($value < 50) {
+                    return 'success';
+                } elseif ($value >= 51 && $value <= 80) {
+                    return 'warning';
+                } else {
+                    return 'danger';
+                }
+
+            case 'metana':
+
+                if ($value < 1000) {
+                    return 'success';
+                } elseif ($value >= 1000 && $value <= 1500) {
+                    return 'warning';
+                } else {
+                    return 'danger';
+                }
+
+            case 'co2':
+
+                if ($value < 1000) {
+                    return 'success';
+                } elseif ($value >= 1000 && $value <= 1500) {
+                    return 'warning';
+                } else {
+                    return 'danger';
+                }
+
+            default:
+                return 'secondary';
+        }
+    }
+}
+
+// ======================================================
+// INDIKATOR WARNA
+// ======================================================
+if (!function_exists('render_indicator')) {
+
+    function render_indicator($label, $value, $type) {
+
+        $status = get_status($type, $value);
+
+        return "
+            <div class='d-flex align-items-center mx-3'>
+                <div class='spinner-grow text-$status'
+                     role='status'
+                     style='width:0.9rem; height:0.9rem; margin-right:6px;'>
+
+                    <span class='visually-hidden'>$label</span>
+
+                </div>
+
+                <small class='text-white'>$label</small>
             </div>
-
-            <small class='text-white'>$label</small>
-
-        </div>
-    ";
+        ";
+    }
 }
 
 // ======================================================
 // NOTIFIKASI GLOBAL
 // ======================================================
-function get_global_notification($data) {
+if (!function_exists('get_global_notification')) {
 
-    $sensor = [
+    function get_global_notification($data) {
 
-        'metana' => [
-            'label' => 'CH4',
-            'value' => $data['metana']
-        ],
+        $sensor = [
 
-        'co2' => [
-            'label' => 'CO2',
-            'value' => $data['co2']
-        ],
+            'metana' => [
+                'label' => 'CH4',
+                'value' => $data['metana']
+            ],
 
-        'suhu' => [
-            'label' => 'Suhu',
-            'value' => $data['suhu']
-        ],
+            'co2' => [
+                'label' => 'CO2',
+                'value' => $data['co2']
+            ],
 
-        'kelembapan' => [
-            'label' => 'Kelembapan',
-            'value' => $data['kelembapan']
-        ]
-    ];
+            'suhu' => [
+                'label' => 'Suhu',
+                'value' => $data['suhu']
+            ],
 
-    // ==================================================
-    // PRIORITAS BAHAYA
-    // ==================================================
-    foreach ($sensor as $type => $s) {
+            'kelembapan' => [
+                'label' => 'Kelembapan',
+                'value' => $data['kelembapan']
+            ]
+        ];
 
-        $status = get_status($type, $s['value']);
+        // ==================================================
+        // PRIORITAS BAHAYA
+        // ==================================================
+        foreach ($sensor as $type => $s) {
 
-        if ($status == 'danger') {
+            $status = get_status($type, $s['value']);
 
-            return [
-                'class' => 'danger',
-                'status' => 'BAHAYA',
-                'message' =>
-                    $s['label'] .
-                    ' mencapai ' .
-                    $s['value']
-            ];
+            if ($status == 'danger') {
+
+                return [
+
+                    'class' => 'danger',
+
+                    'status' => 'BAHAYA',
+
+                    'message' =>
+                        $s['label'] .
+                        ' mencapai ' .
+                        round($s['value'], 2)
+
+                ];
+            }
         }
-    }
 
-    // ==================================================
-    // PRIORITAS WARNING
-    // ==================================================
-    foreach ($sensor as $type => $s) {
+        // ==================================================
+        // PRIORITAS WARNING
+        // ==================================================
+        foreach ($sensor as $type => $s) {
 
-        $status = get_status($type, $s['value']);
+            $status = get_status($type, $s['value']);
 
-        if ($status == 'warning') {
+            if ($status == 'warning') {
 
-            return [
-                'class' => 'warning',
-                'status' => 'WASPADA',
-                'message' =>
-                    $s['label'] .
-                    ' berada pada level waspada'
-            ];
+                return [
+
+                    'class' => 'warning',
+
+                    'status' => 'WASPADA',
+
+                    'message' =>
+                        $s['label'] .
+                        ' berada pada level waspada'
+
+                ];
+            }
         }
-    }
 
-    // ==================================================
-    // NORMAL
-    // ==================================================
-    return [
-        'class' => 'success',
-        'status' => 'AMAN',
-        'message' => 'Kondisi udara normal'
-    ];
+        // ==================================================
+        // NORMAL
+        // ==================================================
+        return [
+
+            'class' => 'success',
+
+            'status' => 'AMAN',
+
+            'message' => 'Kondisi udara masih normal'
+        ];
+    }
 }
 
 // ======================================================
-// AMBIL DATA & NOTIFIKASI
+// DATA TERBARU + NOTIFIKASI
 // ======================================================
 $dataTerbaru = get_latest_data();
 
