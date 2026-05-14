@@ -9,37 +9,38 @@ $mode = $_GET['mode'] ?? 'harian';
 // ======================================================
 if ($mode === 'bulanan') {
 
-    $bulan = $_GET['bulan'] ?? date('Y-m');
+    $bulan = $_GET['bulan'] ?? date('m');
+    $tahun = $_GET['tahun'] ?? date('Y');
 
     // ======================================================
     // FORMAT JUDUL BULAN INDONESIA
     // ======================================================
-    list($tahun, $bulanAngka) = explode('-', $bulan);
+    
 
     $namaBulan = [
-        '01' => 'JANUARI',
-        '02' => 'FEBRUARI',
-        '03' => 'MARET',
-        '04' => 'APRIL',
-        '05' => 'MEI',
-        '06' => 'JUNI',
-        '07' => 'JULI',
-        '08' => 'AGUSTUS',
-        '09' => 'SEPTEMBER',
+        '1' => 'JANUARI',
+        '2' => 'FEBRUARI',
+        '3' => 'MARET',
+        '4' => 'APRIL',
+        '5' => 'MEI',
+        '6' => 'JUNI',
+        '7' => 'JULI',
+        '8' => 'AGUSTUS',
+        '9' => 'SEPTEMBER',
         '10' => 'OKTOBER',
         '11' => 'NOVEMBER',
         '12' => 'DESEMBER'
     ];
 
-    $judul = "LAPORAN BULAN " . $namaBulan[$bulanAngka] . " " . $tahun;
-
+    $judul = "LAPORAN BULAN " . $namaBulan[(int)$bulan] . " " . $tahun;
     // ======================================================
     // AMBIL SEMUA TANGGAL
     // ======================================================
     $queryTanggal = "
         SELECT DISTINCT DATE(waktu) as tanggal
         FROM data_sensor
-        WHERE DATE_FORMAT(waktu, '%Y-%m') = '$bulan'
+        WHERE MONTH(waktu) = '$bulan'
+        AND YEAR(waktu) = '$tahun'
         ORDER BY tanggal ASC
     ";
 
