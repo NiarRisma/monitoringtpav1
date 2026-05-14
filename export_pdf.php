@@ -4,41 +4,52 @@ include 'koneksi.php';
 
 $mode = $_GET['mode'] ?? 'harian';
 
+// ==========================
+// MODE BULANAN
+// ==========================
 if ($mode === 'bulanan') {
 
-    $bulan = $_GET['bulan'] ?? date('m');
-    $tahun = $_GET['tahun'] ?? date('Y');
+    $bulan = $_GET['bulan'] ?? date('Y-m');
 
-    $judul = "LAPORAN BULANAN $bulan-$tahun";
+    $judul = "LAPORAN BULANAN " . $bulan;
 
     $sql = "
     SELECT 
         DATE(waktu) as tanggal,
 
-        MIN(suhu) as suhu_min,
-        MAX(suhu) as suhu_max,
+        CASE
+            WHEN HOUR(waktu) BETWEEN 6 AND 9 THEN '06:00 - 09:00'
+            WHEN HOUR(waktu) BETWEEN 10 AND 13 THEN '10:00 - 13:00'
+            WHEN HOUR(waktu) BETWEEN 14 AND 17 THEN '14:00 - 17:00'
+            ELSE 'Lainnya'
+        END AS periode,
 
-        MIN(kelembapan) as kelembapan_min,
-        MAX(kelembapan) as kelembapan_max,
+        MAX(suhu) as suhu_tertinggi,
+        MIN(suhu) as suhu_terendah,
 
-        MIN(metana) as metana_min,
-        MAX(metana) as metana_max,
+        MAX(kelembapan) as kelembapan_tertinggi,
+        MIN(kelembapan) as kelembapan_terendah,
 
-        MIN(co2) as co2_min,
-        MAX(co2) as co2_max
+        MAX(metana) as metana_tertinggi,
+        MIN(metana) as metana_terendah,
+
+        MAX(co2) as co2_tertinggi,
+        MIN(co2) as co2_terendah
 
     FROM data_sensor
 
-    WHERE MONTH(waktu) = '$bulan'
-    AND YEAR(waktu) = '$tahun'
+    WHERE DATE_FORMAT(waktu, '%Y-%m') = '$bulan'
 
-    GROUP BY DATE(waktu)
+    GROUP BY tanggal, periode
 
-    ORDER BY DATE(waktu) ASC
+    ORDER BY tanggal ASC
     ";
 
 } else {
 
+    // ==========================
+    // MODE HARIAN
+    // ==========================
     $judul = 'LAPORAN HARIAN';
 
     $sql = "
@@ -66,33 +77,36 @@ $pdf->Cell(0,10,$judul,0,1,'C');
 $pdf->Ln(5);
 
 // ==========================
-// TABEL HEADER
+// HEADER TABEL
 // ==========================
 if ($mode === 'bulanan') {
 
     $kolom = [
-      ['label' => 'Tanggal', 'width' => 28],
-      ['label' => 'Suhu', 'width' => 40],
-      ['label' => 'Hum', 'width' => 40],
-      ['label' => 'CH4', 'width' => 40],
-      ['label' => 'CO2', 'width' => 40],
+        ['label' => 'Tanggal', 'width' => 25],
+        ['label' => 'Periode', 'width' => 30],
+        ['label' => 'Suhu', 'width' => 25],
+        ['label' => 'Hum', 'width' => 25],
+        ['label' => 'CH4', 'width' => 25],
+        ['label' => 'CO2', 'width' => 25],
     ];
 
 } else {
 
     $kolom = [
-      ['label' => 'Waktu', 'width' => 40],
-      ['label' => 'Suhu', 'width' => 30],
-      ['label' => 'Hum', 'width' => 30],
-      ['label' => 'CH4', 'width' => 30],
-      ['label' => 'CO2', 'width' => 30],
+        ['label' => 'Waktu', 'width' => 40],
+        ['label' => 'Suhu', 'width' => 30],
+        ['label' => 'Hum', 'width' => 30],
+        ['label' => 'CH4', 'width' => 30],
+        ['label' => 'CO2', 'width' => 30],
     ];
 }
 
 $totalWidth = array_sum(array_column($kolom, 'width'));
 $startX = (210 - $totalWidth) / 2;
 
-// HEADER
+// ==========================
+// CETAK HEADER
+// ==========================
 $pdf->SetFont('Arial','B',10);
 $pdf->SetFillColor(220,220,220);
 
@@ -117,77 +131,44 @@ if ($data->num_rows > 0) {
 
         if ($mode === 'bulanan') {
 
+            $pdf->Cell(25,8,$r['tanggal'],1);
+            $pdf->Cell(30,8,$r['periode'],1);
+
             $pdf->Cell(
-                $kolom[0]['width'],
+                25,
                 8,
-                $r['tanggal'],
+                $r['suhu_terendah']."-".$r['suhu_tertinggi']." C",
                 1
             );
 
             $pdf->Cell(
-                $kolom[1]['width'],
+                25,
                 8,
-                $r['suhu_min']." - ".$r['suhu_max']." C",
+                $r['kelembapan_terendah']."-".$r['kelembapan_tertinggi']." %",
                 1
             );
 
             $pdf->Cell(
-                $kolom[2]['width'],
+                25,
                 8,
-                $r['kelembapan_min']." - ".$r['kelembapan_max']." %",
+                $r['metana_terendah']."-".$r['metana_tertinggi']." ppm",
                 1
             );
 
             $pdf->Cell(
-                $kolom[3]['width'],
+                25,
                 8,
-                $r['metana_min']." - ".$r['metana_max']." ppm",
-                1
-            );
-
-            $pdf->Cell(
-                $kolom[4]['width'],
-                8,
-                $r['co2_min']." - ".$r['co2_max']." ppm",
+                $r['co2_terendah']."-".$r['co2_tertinggi']." ppm",
                 1
             );
 
         } else {
 
-            $pdf->Cell(
-                $kolom[0]['width'],
-                8,
-                $r['waktu'],
-                1
-            );
-
-            $pdf->Cell(
-                $kolom[1]['width'],
-                8,
-                $r['suhu']." C",
-                1
-            );
-
-            $pdf->Cell(
-                $kolom[2]['width'],
-                8,
-                $r['kelembapan']." %",
-                1
-            );
-
-            $pdf->Cell(
-                $kolom[3]['width'],
-                8,
-                $r['metana']." ppm",
-                1
-            );
-
-            $pdf->Cell(
-                $kolom[4]['width'],
-                8,
-                $r['co2']." ppm",
-                1
-            );
+            $pdf->Cell(40,8,$r['waktu'],1);
+            $pdf->Cell(30,8,$r['suhu']." C",1);
+            $pdf->Cell(30,8,$r['kelembapan']." %",1);
+            $pdf->Cell(30,8,$r['metana']." ppm",1);
+            $pdf->Cell(30,8,$r['co2']." ppm",1);
         }
 
         $pdf->Ln();
