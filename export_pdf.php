@@ -4,195 +4,289 @@ include 'koneksi.php';
 
 $mode = $_GET['mode'] ?? 'harian';
 
-// ==========================
+// ======================================================
 // MODE BULANAN
-// ==========================
+// ======================================================
 if ($mode === 'bulanan') {
 
     $bulan = $_GET['bulan'] ?? date('Y-m');
 
-    $judul = "LAPORAN BULANAN " . $bulan;
+    // ======================================================
+    // FORMAT JUDUL BULAN INDONESIA
+    // ======================================================
+    list($tahun, $bulanAngka) = explode('-', $bulan);
 
-    $sql = "
-    SELECT 
-        DATE(waktu) as tanggal,
+    $namaBulan = [
+        '01' => 'JANUARI',
+        '02' => 'FEBRUARI',
+        '03' => 'MARET',
+        '04' => 'APRIL',
+        '05' => 'MEI',
+        '06' => 'JUNI',
+        '07' => 'JULI',
+        '08' => 'AGUSTUS',
+        '09' => 'SEPTEMBER',
+        '10' => 'OKTOBER',
+        '11' => 'NOVEMBER',
+        '12' => 'DESEMBER'
+    ];
 
-        CASE
-            WHEN HOUR(waktu) BETWEEN 6 AND 9 THEN '06:00 - 09:00'
-            WHEN HOUR(waktu) BETWEEN 10 AND 13 THEN '10:00 - 13:00'
-            WHEN HOUR(waktu) BETWEEN 14 AND 17 THEN '14:00 - 17:00'
-            ELSE 'Lainnya'
-        END AS periode,
+    $judul = "LAPORAN BULAN " . $namaBulan[$bulanAngka] . " " . $tahun;
 
-        MAX(suhu) as suhu_tertinggi,
-        MIN(suhu) as suhu_terendah,
-
-        MAX(kelembapan) as kelembapan_tertinggi,
-        MIN(kelembapan) as kelembapan_terendah,
-
-        MAX(metana) as metana_tertinggi,
-        MIN(metana) as metana_terendah,
-
-        MAX(co2) as co2_tertinggi,
-        MIN(co2) as co2_terendah
-
-    FROM data_sensor
-
-    WHERE DATE_FORMAT(waktu, '%Y-%m') = '$bulan'
-
-    GROUP BY tanggal, periode
-
-    ORDER BY tanggal ASC
+    // ======================================================
+    // AMBIL SEMUA TANGGAL
+    // ======================================================
+    $queryTanggal = "
+        SELECT DISTINCT DATE(waktu) as tanggal
+        FROM data_sensor
+        WHERE DATE_FORMAT(waktu, '%Y-%m') = '$bulan'
+        ORDER BY tanggal ASC
     ";
+
+    $tanggalResult = $conn->query($queryTanggal);
 
 } else {
 
-    // ==========================
+    // ======================================================
     // MODE HARIAN
-    // ==========================
+    // ======================================================
     $judul = 'LAPORAN HARIAN';
 
     $sql = "
-    SELECT * 
-    FROM data_sensor
-    WHERE DATE(waktu) = CURDATE()
-    ORDER BY waktu DESC
+        SELECT *
+        FROM data_sensor
+        WHERE DATE(waktu) = CURDATE()
+        ORDER BY waktu DESC
     ";
+
+    $data = $conn->query($sql);
 }
 
-$data = $conn->query($sql);
-
-// ==========================
-// INISIALISASI PDF
-// ==========================
-$pdf = new FPDF('P','mm','A4');
+// ======================================================
+// PDF
+// ======================================================
+$pdf = new FPDF('P', 'mm', 'A4');
 $pdf->AddPage();
 
-// ==========================
-// JUDUL
-// ==========================
-$pdf->SetFont('Arial','B',14);
-$pdf->Cell(0,10,$judul,0,1,'C');
+$pdf->SetFont('Arial', 'B', 14);
+$pdf->Cell(0, 10, $judul, 0, 1, 'C');
 
 $pdf->Ln(5);
 
-// ==========================
-// HEADER TABEL
-// ==========================
+// ======================================================
+// MODE BULANAN
+// ======================================================
 if ($mode === 'bulanan') {
 
-    $kolom = [
-        ['label' => 'Tanggal', 'width' => 25],
-        ['label' => 'Periode', 'width' => 30],
-        ['label' => 'Suhu', 'width' => 25],
-        ['label' => 'Hum', 'width' => 25],
-        ['label' => 'CH4', 'width' => 25],
-        ['label' => 'CO2', 'width' => 25],
-    ];
+    if ($tanggalResult->num_rows > 0) {
 
-} else {
+        while ($tgl = $tanggalResult->fetch_assoc()) {
 
-    $kolom = [
-        ['label' => 'Waktu', 'width' => 40],
-        ['label' => 'Suhu', 'width' => 30],
-        ['label' => 'Hum', 'width' => 30],
-        ['label' => 'CH4', 'width' => 30],
-        ['label' => 'CO2', 'width' => 30],
-    ];
-}
+            $tanggal = $tgl['tanggal'];
 
-$totalWidth = array_sum(array_column($kolom, 'width'));
-$startX = (210 - $totalWidth) / 2;
+            // ==========================================
+            // JUDUL TANGGAL
+            // ==========================================
+            $pdf->SetFont('Arial', 'B', 11);
+            $pdf->SetFillColor(230,230,230);
 
-// ==========================
-// CETAK HEADER
-// ==========================
-$pdf->SetFont('Arial','B',10);
-$pdf->SetFillColor(220,220,220);
+            $pdf->Cell(0, 8, "Tanggal : " . $tanggal, 1, 1, 'L', true);
 
-$pdf->SetX($startX);
+            // ==========================================
+            // HEADER TABEL
+            // ==========================================
+            $pdf->SetFont('Arial', 'B', 9);
 
-foreach ($kolom as $k) {
-    $pdf->Cell($k['width'],10,$k['label'],1,0,'C',true);
-}
+            $pdf->Cell(35,8,'Periode / Jam',1,0,'C');
+            $pdf->Cell(35,8,'CO2 (ppm)',1,0,'C');
+            $pdf->Cell(35,8,'CH4 (ppm)',1,0,'C');
+            $pdf->Cell(35,8,'Suhu (C)',1,0,'C');
+            $pdf->Cell(40,8,'Kelembapan (%)',1,1,'C');
 
-$pdf->Ln();
+            // ==========================================
+            // DAFTAR JAM
+            // ==========================================
+            $jamList = [
+                'PAGI' => [6,7,8,9],
+                'SIANG' => [10,11,12,13],
+                'SORE' => [14,15,16,17]
+            ];
 
-// ==========================
-// ISI DATA
-// ==========================
-$pdf->SetFont('Arial','',9);
+            $pdf->SetFont('Arial', '', 9);
 
-if ($data->num_rows > 0) {
+            foreach ($jamList as $periode => $jamArray) {
 
-    while($r = $data->fetch_assoc()) {
+                // ==========================================
+                // BARIS PERIODE
+                // ==========================================
+                $pdf->SetFont('Arial', 'B', 9);
 
-        $pdf->SetX($startX);
+                $pdf->Cell(180,7,"PERIODE $periode",1,1,'L');
 
-        if ($mode === 'bulanan') {
+                $pdf->SetFont('Arial', '', 9);
 
-            $pdf->Cell(25,8,$r['tanggal'],1);
-            $pdf->Cell(30,8,$r['periode'],1);
+                foreach ($jamArray as $jam) {
 
-            $pdf->Cell(
-                25,
-                8,
-                $r['suhu_terendah']."-".$r['suhu_tertinggi']." C",
-                1
-            );
+                    $sqlJam = "
+                        SELECT
+                            AVG(co2) as avg_co2,
+                            AVG(metana) as avg_ch4,
+                            AVG(suhu) as avg_suhu,
+                            AVG(kelembapan) as avg_kelembapan
+                        FROM data_sensor
+                        WHERE DATE(waktu) = '$tanggal'
+                        AND HOUR(waktu) = $jam
+                    ";
 
-            $pdf->Cell(
-                25,
-                8,
-                $r['kelembapan_terendah']."-".$r['kelembapan_tertinggi']." %",
-                1
-            );
+                    $resultJam = $conn->query($sqlJam);
+                    $rowJam = $resultJam->fetch_assoc();
 
-            $pdf->Cell(
-                25,
-                8,
-                $r['metana_terendah']."-".$r['metana_tertinggi']." ppm",
-                1
-            );
+                    $co2 = $rowJam['avg_co2']
+                        ? round($rowJam['avg_co2'],2)." ppm"
+                        : "-";
 
-            $pdf->Cell(
-                25,
-                8,
-                $r['co2_terendah']."-".$r['co2_tertinggi']." ppm",
-                1
-            );
+                    $ch4 = $rowJam['avg_ch4']
+                        ? round($rowJam['avg_ch4'],2)." ppm"
+                        : "-";
 
-        } else {
+                    $suhu = $rowJam['avg_suhu']
+                        ? round($rowJam['avg_suhu'],2)." C"
+                        : "-";
 
-            $pdf->Cell(40,8,$r['waktu'],1);
-            $pdf->Cell(30,8,$r['suhu']." C",1);
-            $pdf->Cell(30,8,$r['kelembapan']." %",1);
-            $pdf->Cell(30,8,$r['metana']." ppm",1);
-            $pdf->Cell(30,8,$r['co2']." ppm",1);
+                    $hum = $rowJam['avg_kelembapan']
+                        ? round($rowJam['avg_kelembapan'],2)." %"
+                        : "-";
+
+                    $pdf->Cell(35,8,sprintf("%02d:00",$jam),1);
+                    $pdf->Cell(35,8,$co2,1);
+                    $pdf->Cell(35,8,$ch4,1);
+                    $pdf->Cell(35,8,$suhu,1);
+                    $pdf->Cell(40,8,$hum,1);
+                    $pdf->Ln();
+                }
+            }
+
+            // ==========================================
+            // MIN MAX HARIAN
+            // ==========================================
+            $sqlMinMax = "
+                SELECT
+                    MIN(co2) as min_co2,
+                    MAX(co2) as max_co2,
+
+                    MIN(metana) as min_ch4,
+                    MAX(metana) as max_ch4,
+
+                    MIN(suhu) as min_suhu,
+                    MAX(suhu) as max_suhu,
+
+                    MIN(kelembapan) as min_hum,
+                    MAX(kelembapan) as max_hum
+
+                FROM data_sensor
+                WHERE DATE(waktu) = '$tanggal'
+            ";
+
+            $minmax = $conn->query($sqlMinMax)->fetch_assoc();
+
+            $pdf->Ln(2);
+
+            $pdf->SetFont('Arial','B',9);
+
+            $pdf->Cell(90,8,'Keterangan',1,0,'C');
+            $pdf->Cell(90,8,'Nilai',1,1,'C');
+
+            $pdf->SetFont('Arial','',9);
+
+            $dataMinMax = [
+
+                ['Min CO2', $minmax['min_co2'].' ppm'],
+                ['Max CO2', $minmax['max_co2'].' ppm'],
+
+                ['Min CH4', $minmax['min_ch4'].' ppm'],
+                ['Max CH4', $minmax['max_ch4'].' ppm'],
+
+                ['Min Suhu', $minmax['min_suhu'].' C'],
+                ['Max Suhu', $minmax['max_suhu'].' C'],
+
+                ['Min Kelembapan', $minmax['min_hum'].' %'],
+                ['Max Kelembapan', $minmax['max_hum'].' %'],
+            ];
+
+            foreach ($dataMinMax as $d) {
+
+                $pdf->Cell(90,8,$d[0],1);
+                $pdf->Cell(90,8,$d[1],1);
+                $pdf->Ln();
+            }
+
+            $pdf->Ln(5);
+
+            // ==========================================
+            // AUTO PAGE BREAK
+            // ==========================================
+            if ($pdf->GetY() > 240) {
+                $pdf->AddPage();
+            }
         }
 
-        $pdf->Ln();
+    } else {
+
+        $pdf->Ln(20);
+
+        $pdf->SetFont('Arial','B',14);
+
+        $pdf->Cell(
+            0,
+            10,
+            'Data not found',
+            0,
+            1,
+            'C'
+        );
     }
 
 } else {
 
-    $pdf->Ln(10);
+    // ======================================================
+    // MODE HARIAN
+    // ======================================================
+    $pdf->SetFont('Arial','B',10);
 
-    $pdf->SetFont('Arial','B',12);
+    $pdf->Cell(40,10,'Waktu',1);
+    $pdf->Cell(30,10,'Suhu',1);
+    $pdf->Cell(30,10,'Kelembapan',1);
+    $pdf->Cell(30,10,'CH4',1);
+    $pdf->Cell(30,10,'CO2',1);
 
-    $pdf->Cell(
-        0,
-        10,
-        'Data not found',
-        0,
-        1,
-        'C'
-    );
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial','',9);
+
+    if ($data->num_rows > 0) {
+
+        while($r = $data->fetch_assoc()) {
+
+            $pdf->Cell(40,8,$r['waktu'],1);
+            $pdf->Cell(30,8,$r['suhu'].' C',1);
+            $pdf->Cell(30,8,$r['kelembapan'].' %',1);
+            $pdf->Cell(30,8,$r['metana'].' ppm',1);
+            $pdf->Cell(30,8,$r['co2'].' ppm',1);
+
+            $pdf->Ln();
+        }
+
+    } else {
+
+        $pdf->Ln(20);
+
+        $pdf->Cell(0,10,'Data not found',0,1,'C');
+    }
 }
 
-// ==========================
-// OUTPUT FILE
-// ==========================
+// ======================================================
+// OUTPUT
+// ======================================================
 $namaFile = "laporan_" . $mode . "_" . date("Ymd") . ".pdf";
 
 $pdf->Output('D', $namaFile);
