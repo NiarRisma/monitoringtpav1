@@ -9,18 +9,22 @@ $notifikasi = get_global_notification($dataTerbaru);
 
 <?php include 'header.php'; ?>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 px-3">
 
     <!-- =========================
          JUDUL
     ========================= -->
-    <div class="mb-4">
-        <h2>Selamat Datang di Sistem Monitoring TPA Indramayu</h2>
+    <div class="mb-4 text-center text-md-start">
+
+        <h2 class="fw-bold">
+            Sistem Monitoring TPA Indramayu
+        </h2>
 
         <p class="text-muted">
-            Sistem ini memantau kadar gas Metana, CO₂, suhu, 
+            Sistem ini memantau kadar gas Metana, CO₂, suhu,
             dan kelembapan di area Tempat Pembuangan Akhir (TPA).
         </p>
+
     </div>
 
     <!-- =========================
@@ -38,14 +42,148 @@ $notifikasi = get_global_notification($dataTerbaru);
 
     </div>
 
-    <div class="row mt-4">
+    <!-- =========================
+         CARD STATUS SENSOR
+    ========================= -->
+    <div class="row mb-4 g-3">
+
+        <div class="col-6 col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <h6 class="text-muted">
+                        Suhu
+                    </h6>
+
+                    <h4>
+                        <?= $dataTerbaru['suhu']; ?> °C
+                    </h4>
+
+                    <?php
+                    $statusSuhu = get_status(
+                        'suhu',
+                        $dataTerbaru['suhu']
+                    );
+                    ?>
+
+                    <span class="badge bg-<?= $statusSuhu; ?>">
+                        <?= strtoupper($statusSuhu); ?>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-6 col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <h6 class="text-muted">
+                        Kelembapan
+                    </h6>
+
+                    <h4>
+                        <?= $dataTerbaru['kelembapan']; ?> %
+                    </h4>
+
+                    <?php
+                    $statusHum = get_status(
+                        'kelembapan',
+                        $dataTerbaru['kelembapan']
+                    );
+                    ?>
+
+                    <span class="badge bg-<?= $statusHum; ?>">
+                        <?= strtoupper($statusHum); ?>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-6 col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <h6 class="text-muted">
+                        CH₄
+                    </h6>
+
+                    <h4>
+                        <?= $dataTerbaru['metana']; ?> ppm
+                    </h4>
+
+                    <?php
+                    $statusCH4 = get_status(
+                        'metana',
+                        $dataTerbaru['metana']
+                    );
+                    ?>
+
+                    <span class="badge bg-<?= $statusCH4; ?>">
+                        <?= strtoupper($statusCH4); ?>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-6 col-md-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <h6 class="text-muted">
+                        CO₂
+                    </h6>
+
+                    <h4>
+                        <?= $dataTerbaru['co2']; ?> ppm
+                    </h4>
+
+                    <?php
+                    $statusCO2 = get_status(
+                        'co2',
+                        $dataTerbaru['co2']
+                    );
+                    ?>
+
+                    <span class="badge bg-<?= $statusCO2; ?>">
+                        <?= strtoupper($statusCO2); ?>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================
+         KONTEN
+    ========================= -->
+    <div class="row g-4">
 
         <!-- =========================
              GRAFIK
         ========================= -->
-        <div class="col-md-6">
+        <div class="col-12 col-lg-7">
 
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm border-0">
 
                 <div class="card-body">
 
@@ -55,24 +193,44 @@ $notifikasi = get_global_notification($dataTerbaru);
 
                     <div class="row">
 
-                        <div class="col-md-6 mb-4">
-                            <h5>Suhu (°C)</h5>
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <h6 class="mb-3">
+                                Suhu (°C)
+                            </h6>
+
                             <canvas id="chartSuhu"></canvas>
+
                         </div>
 
-                        <div class="col-md-6 mb-4">
-                            <h5>Kelembapan (%)</h5>
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <h6 class="mb-3">
+                                Kelembapan (%)
+                            </h6>
+
                             <canvas id="chartKelembapan"></canvas>
+
                         </div>
 
-                        <div class="col-md-6 mb-4">
-                            <h5>Metana (ppm)</h5>
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <h6 class="mb-3">
+                                Metana (ppm)
+                            </h6>
+
                             <canvas id="chartMetana"></canvas>
+
                         </div>
 
-                        <div class="col-md-6 mb-4">
-                            <h5>CO₂ (ppm)</h5>
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <h6 class="mb-3">
+                                CO₂ (ppm)
+                            </h6>
+
                             <canvas id="chartCO2"></canvas>
+
                         </div>
 
                     </div>
@@ -86,26 +244,30 @@ $notifikasi = get_global_notification($dataTerbaru);
         <!-- =========================
              TABEL DATA
         ========================= -->
-        <div class="col-md-6">
+        <div class="col-12 col-lg-5">
 
-            <div class="card shadow-sm">
+            <div class="card shadow-sm border-0">
 
                 <div class="card-body">
 
-                    <h4 class="mb-3">Data Terakhir</h4>
+                    <h4 class="mb-3">
+                        Data Terakhir
+                    </h4>
 
                     <div class="table-responsive">
 
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-bordered table-striped align-middle">
 
-                            <thead class="table-dark">
+                            <thead class="table-dark text-center">
 
                                 <tr>
+
                                     <th>Waktu</th>
                                     <th>Suhu</th>
                                     <th>Kelembapan</th>
                                     <th>CH₄</th>
                                     <th>CO₂</th>
+
                                 </tr>
 
                             </thead>
@@ -177,7 +339,7 @@ function buatGrafik(id, label, warna) {
                 data: [],
                 fill: false,
                 borderColor: warna,
-                tension: 0.1
+                tension: 0.3
 
             }]
         },
@@ -186,19 +348,25 @@ function buatGrafik(id, label, warna) {
 
             responsive: true,
 
+            maintainAspectRatio: false,
+
             scales: {
 
                 x: {
 
                     title: {
+
                         display: true,
                         text: 'Waktu'
+
                     }
 
                 },
 
                 y: {
+
                     beginAtZero: false
+
                 }
 
             }
