@@ -191,56 +191,73 @@ $notifikasi = get_global_notification($dataTerbaru);
                         Visualisasi Real-Time Monitoring
                     </h4>
 
-                    <div class="row">
+                    <div class="card shadow-sm mb-4">
 
-                        <div class="col-12 col-md-6 mb-4">
+    <div class="card-body">
 
-                            <h6 class="mb-3">
-                                Suhu (°C)
-                            </h6>
+        <h4 class="mb-4">
+            Visualisasi Real-Time Monitoring
+        </h4>
 
-                            <canvas id="chartSuhu"></canvas>
+        <div class="row">
 
-                        </div>
+            <!-- SUHU -->
+            <div class="col-12 col-md-6 mb-4">
 
-                        <div class="col-12 col-md-6 mb-4">
+                <div class="chart-container">
+                    <h6 class="text-center mb-3">
+                        Suhu (°C)
+                    </h6>
 
-                            <h6 class="mb-3">
-                                Kelembapan (%)
-                            </h6>
+                    <canvas id="chartSuhu"></canvas>
+                </div>
 
-                            <canvas id="chartKelembapan"></canvas>
+            </div>
 
-                        </div>
+            <!-- KELEMBAPAN -->
+            <div class="col-12 col-md-6 mb-4">
 
-                        <div class="col-12 col-md-6 mb-4">
+                <div class="chart-container">
+                    <h6 class="text-center mb-3">
+                        Kelembapan (%)
+                    </h6>
 
-                            <h6 class="mb-3">
-                                Metana (ppm)
-                            </h6>
+                    <canvas id="chartKelembapan"></canvas>
+                </div>
 
-                            <canvas id="chartMetana"></canvas>
+            </div>
 
-                        </div>
+            <!-- METANA -->
+            <div class="col-12 col-md-6 mb-4">
 
-                        <div class="col-12 col-md-6 mb-4">
+                <div class="chart-container">
+                    <h6 class="text-center mb-3">
+                        Metana (ppm)
+                    </h6>
 
-                            <h6 class="mb-3">
-                                CO₂ (ppm)
-                            </h6>
+                    <canvas id="chartMetana"></canvas>
+                </div>
 
-                            <canvas id="chartCO2"></canvas>
+            </div>
 
-                        </div>
+            <!-- CO2 -->
+            <div class="col-12 col-md-6 mb-4">
 
-                    </div>
+                <div class="chart-container">
+                    <h6 class="text-center mb-3">
+                        CO₂ (ppm)
+                    </h6>
 
+                    <canvas id="chartCO2"></canvas>
                 </div>
 
             </div>
 
         </div>
 
+    </div>
+
+</div>
         <!-- =========================
              TABEL DATA
         ========================= -->
