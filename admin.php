@@ -41,7 +41,7 @@ $notifikasi = get_global_notification($dataTerbaru);
 <div class="card mb-4 shadow-sm">
   <div class="card-body">
 
-    <h5 class="mb-3">Export Laporan PDF</h5>
+    <h5 class="mb-3">Download Laporan PDF</h5>
 
     <div class="mb-3">
       <a href="export_pdf.php?mode=harian" 
