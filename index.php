@@ -15,7 +15,7 @@ $notifikasi = get_global_notification($dataTerbaru);
          JUDUL
     ========================= -->
     <div class="mb-4">
-        <h2>Selamat Datang di Sistem Monitoring TPA Indramayu</h2>
+        <h2>Selamat Siang di Sistem Monitoring TPA Indramayu</h2>
 
         <p class="text-muted">
             Sistem ini memantau kadar gas Metana, CO₂, suhu, 
