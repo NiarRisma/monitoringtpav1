@@ -1,13 +1,12 @@
 <?php
-$conn = new mysqli(
-    "tramway.proxy.rlwy.net",
-    "root",
-    "TREojfsjiCescusVPTkvpfhttHjGiylt",
-    "railway",
-    59384
-);
+$host = getenv('DB_HOST');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+$db   = getenv('DB_NAME');
 
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
+$koneksi = new mysqli($host, $user, $pass, $db);
+
+if ($koneksi->connect_error) {
+    die("Koneksi database gagal: " . $koneksi->connect_error);
 }
 ?>
